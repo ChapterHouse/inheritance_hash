@@ -2,13 +2,16 @@ require 'inheritance_hash/version'
 
 class InheritanceHash < Hash
 
+  #:nodoc:
   alias :__has_key? :has_key?
+  private(:__has_key?)
 
   instance_methods.each do |m|
     undef_method(m) unless m =~ /(^__|^nil\?|^send$|^object_id$|^tap$|^class$)/
   end
 
-  def self.[](*args)
+  #:doc:
+  def self.[](*args) #:nodoc:
     ihash = InheritanceHash.new
     if args.size == 1
       if args.first.is_a?(Array)
@@ -28,11 +31,11 @@ class InheritanceHash < Hash
     ihash
   end
 
-  def initialize(*args)
+  def initialize(*args) #:nodoc:
     super
   end
 
-  def [](key)
+  def [](key) #:nodoc:
     if __has_key?(key)
       super
     elsif inheritable?(key) && !deleted?(key) && up_chain.has_key?(key)
@@ -42,12 +45,12 @@ class InheritanceHash < Hash
     end
   end
 
-  def []=(key, value)
+  def []=(key, value) #:nodoc:
     key_set(key)
     super
   end
 
-  def assoc(obj)
+  def assoc(obj) #:nodoc:
     if __has_key?(object)
       super
     else
@@ -55,17 +58,19 @@ class InheritanceHash < Hash
     end
   end
 
-  def clear
+  def clear #:nodoc:
     deleted_keys += (up_chain.keys - noninheritable)
     deleted_keys.uniq!
     super
   end
 
+  # This is not yet implemented as it will be neccessary to prevent children from causing
+  # side effects in other children by affecting the parent's comparison method.
   def compare_by_identity
-    raise NotImplementedError, 'Probably will never be implemented as it allows for children to cause side effects in other children.'
+    raise NotImplementedError
   end
 
-  def delete(key)
+  def delete(key) #:nodoc:
     if noninheritable?(key)
       super
     else
@@ -85,7 +90,7 @@ class InheritanceHash < Hash
 
   end
 
-  def delete_if
+  def delete_if #:nodoc:
     if block_given?
       each { |key, value| delete(key) if yield(key, value) }
       self
@@ -94,12 +99,15 @@ class InheritanceHash < Hash
     end
   end
 
+  # Define a key as uninheritable.
+  # If the key is not defined in this hash it will not check the parent.
+  # The key does not need to currently exist in the hash.
   def dont_inherit(key)
     noninheritable << key
     noninheritable.uniq!
   end
 
-  def fetch(*args)
+  def fetch(*args) #:nodoc:
     if args.length < 1 || args.length > 2
       raise ArgumentError, "wrong number of arguments (#{args.length} for 1..2)"
     elsif args.length == 2 && block_given?
@@ -123,22 +131,29 @@ class InheritanceHash < Hash
     end
   end
 
-  def has_key?(key)
-    __has_key?(key) || up_chain.has_key?(key)
+  def has_key?(key) #:nodoc:
+    super || up_chain.has_key?(key)
   end
 
+
+  # Mark a key as inheritable (the default).
+  # If the key was previously marked as uninheritable, this will remove that setting.
+  # The key does not need to currently exist in the hash.
   def inherit(key)
     noninheritable.delete(key)
   end
 
+  # Set the hash to inherit from. Usually this would be another InheritanceHash but can be a normal Hash.
+  # Note: Using a normal Hash will not automatically undelete keys in the child InheritanceHash if they are reset in the parent Hash.
   def inherit_from(hash)
     unless hash == self
+      up_chain.unchain_from(self) if up_chain.respond_to?(:unchain_from, true)
       self.up_chain = hash
-      up_chain.down_chain_to(self) if up_chain.respond_to?(:down_chain_to)
+      up_chain.down_chain_to(self) if up_chain.respond_to?(:down_chain_to, true)
     end
   end
 
-  def keep_if
+  def keep_if #:nodoc:
     if block_given?
       each { |key, value| delete(key) unless yield(key, value) }
       self
@@ -147,19 +162,25 @@ class InheritanceHash < Hash
     end
   end
 
-  def respond_to?(*args)
-    [:inherit, :dont_inherit, :inherit_from].include?(args.first) || {}.respond_to?(*args)
+  def respond_to?(*args) #:nodoc:
+    [:inherit, :dont_inherit, :inherit_from].include?(args.first) || args[1] && [:down_chain_to, :unchain_from].include?(args.first) || {}.respond_to?(*args)
   end
 
-  def to_h
+  def to_h #:nodoc:
     up_chain.to_h.select { |key, _| inheritable?(key) }.merge(super).select { |key, _| !deleted?(key) }
   end
 
+
   protected
 
-  attr_writer :up_chain, :down_chains
+  def down_chain_to(hash) #:nodoc:
+    unless hash == self
+      down_chains << hash
+      down_chains.uniq!
+    end
+  end
 
-  def key_set(key)
+  def key_set(key) #:nodoc:
     if inheritable?(key)
       deleted_keys.delete(key)
       #deleted(key).delete
@@ -167,14 +188,14 @@ class InheritanceHash < Hash
     end
   end
 
-  def down_chain_to(hash)
-    unless hash == self
-      down_chains << hash
-      down_chains.uniq!
-    end
+  def unchain_from(hash) #:nodoc:
+    down_chains.delete(hash)
   end
 
   private
+
+
+  attr_writer :up_chain, :down_chains
 
   def deleted?(key)
     deleted_keys.include?(key)

@@ -68,6 +68,14 @@ describe InheritanceHash do
       expect(child[:d]).to equal(4)
     end
 
+    it 'propagates the value to the children if the child previously deleted the key' do
+      child.delete(:a)
+      expect(parent[:a]).to_not be_nil
+      expect(child[:a]).to be_nil
+      parent[:a] = 101
+      expect(child[:a]).to equal(101)
+    end
+
   end
 
   context 'delete' do
