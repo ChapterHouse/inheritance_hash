@@ -1,0 +1,84 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Inheritance Hash by ChapterHouse</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Inheritance Hash</h1>
+        <p class="header">A hash that can inherit entries from other normal hashes or other inheritance hashes.</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/ChapterHouse/inheritance_hash/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/ChapterHouse/inheritance_hash/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/ChapterHouse/inheritance_hash">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/ChapterHouse">ChapterHouse</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a name="inheritancehash" class="anchor" href="#inheritancehash"><span class="octicon octicon-link"></span></a>InheritanceHash</h1>
+
+<p>A hash that can inherit entries from other normal hashes or other inheritance hashes.
+Originally created for class level attributes, InheritanceHash is designed for maintaining hashes in an inheritable fashion such that changes in the parent can be reflected in the children but not vice versa.</p>
+
+<h2>
+<a name="installation" class="anchor" href="#installation"><span class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Add this line to your application's Gemfile:</p>
+
+<pre><code>gem 'inheritance_hash'
+</code></pre>
+
+<p>And then execute:</p>
+
+<pre><code>$ bundle
+</code></pre>
+
+<p>Or install it yourself as:</p>
+
+<pre><code>$ gem install inheritance_hash
+</code></pre>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Use it just like a normal hash only call InheritanceHash.new</p>
+
+<p>To inherit values from another hash use: ihash.inherit_from(other_hash)</p>
+
+<p>To prevent inheriting a specific value use: ihash.dont_inherit(key)</p>
+
+<h2>
+<a name="contributing" class="anchor" href="#contributing"><span class="octicon octicon-link"></span></a>Contributing</h2>
+
+<ol>
+<li>Fork it</li>
+<li>Create your feature branch (<code>git checkout -b my-new-feature</code>)</li>
+<li>Commit your changes (<code>git commit -am 'Add some feature'</code>)</li>
+<li>Push to the branch (<code>git push origin my-new-feature</code>)</li>
+<li>Create new Pull Request</li>
+</ol>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="https://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
