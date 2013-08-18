@@ -21,7 +21,9 @@ Or install it yourself as:
 ## Usage
 
   Use it just like a normal hash only call InheritanceHash.new
+
   To inherit values from another hash use: ihash.inherit_from(other_hash)
+
   To prevent inheriting a specific value use: ihash.dont_inherit(key)
 
 ## Contributing
