@@ -6,8 +6,8 @@ class InheritanceHash < Hash
   alias :__has_key? :has_key?
   private(:__has_key?)
 
-  instance_methods.each do |m|
-    undef_method(m) unless m =~ /(^__|^nil\?|^send$|^object_id$|^tap$|^class$)/
+  (superclass.instance_methods - Object.instance_methods).each do |m|
+    undef_method(m) #unless m =~ /(^__|^nil\?|^send$|^object_id$|^tap$|^class$)/
   end
 
   #:doc:
@@ -59,8 +59,7 @@ class InheritanceHash < Hash
   end
 
   def clear #:nodoc:
-    deleted_keys += (up_chain.keys - noninheritable)
-    deleted_keys.uniq!
+    self.deleted_keys += (up_chain.keys - noninheritable)
     super
   end
 
@@ -162,6 +161,24 @@ class InheritanceHash < Hash
     end
   end
 
+  def merge(*args)
+    self.class[super]
+  end
+
+  def merge!(*args)
+    x = super
+    puts x.inspect
+    replace(x)
+    #replace(super)
+  end
+
+  def replace(other_hash)
+    puts "#replace(#{other_hash.inspect})"
+    # Make sure we clear out values that are inherited too.
+    clear
+    super(other_hash.to_h)
+  end
+
   def respond_to?(*args) #:nodoc:
     [:inherit, :dont_inherit, :inherit_from].include?(args.first) || args[1] && [:down_chain_to, :unchain_from].include?(args.first) || {}.respond_to?(*args)
   end
@@ -169,6 +186,7 @@ class InheritanceHash < Hash
   def to_h #:nodoc:
     up_chain.to_h.select { |key, _| inheritable?(key) }.merge(super).select { |key, _| !deleted?(key) }
   end
+
 
 
   protected
@@ -192,10 +210,20 @@ class InheritanceHash < Hash
     down_chains.delete(hash)
   end
 
+
+  # Inherited values we are pretending to have 'deleted' but may be restored if the up_chain sets another value.
+  def deleted_keys
+    @deleted_keys ||= []
+  end
+
+  def deleted_keys=(new_array)
+    @deleted_keys = Array(new_array).flatten.uniq!
+  end
+
   private
 
 
-  attr_writer :up_chain, :down_chains
+  attr_writer :up_chain, :down_chains#, :deleted_keys
 
   def deleted?(key)
     deleted_keys.include?(key)
@@ -207,10 +235,6 @@ class InheritanceHash < Hash
     deleted_keys.uniq!
   end
 
-  # Inherited values we are pretending to have 'deleted' but may be restored if the up_chain sets another value.
-  def deleted_keys
-    @deleted_keys ||= []
-  end
 
   def up_chain
     @up_chain ||= {}
